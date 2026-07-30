@@ -3,17 +3,14 @@ import streamlit as st
 import joblib
 import numpy as np
 
-
 # Title
 st.title("Multi Model Prediction App")
-
 
 # Select Problem Type
 problem = st.selectbox(
     "Select Problem Type",
     ["Classification", "Regression"]
 )
-
 
 # Load Model According to Problem
 if problem == "Classification":
@@ -24,7 +21,6 @@ if problem == "Classification":
 
     st.subheader("Titanic Survival Prediction")
 
-
 else:
 
     model = joblib.load("regression_model.pkl")
@@ -32,7 +28,6 @@ else:
     columns = joblib.load("regression_columns.pkl")
 
     st.subheader("House Price Prediction")
-
 
 # User Input
 values = []
@@ -49,21 +44,17 @@ for col in columns:
     values.append(value)
 
 
-
 # Prediction Button
 if st.button("Predict"):
 
     # Convert input into numpy array
     data = np.array(values).reshape(1, -1)
 
-
     # Scaling
     data = scaler.transform(data)
 
-
     # Prediction
     pred = model.predict(data)
-
 
 
     # Classification Output
@@ -82,10 +73,10 @@ if st.button("Predict"):
             )
 
 
-
     # Regression Output
     else:
 
         st.success(
             f"Predicted House Value: {pred[0]:.2f}"
         )
+
