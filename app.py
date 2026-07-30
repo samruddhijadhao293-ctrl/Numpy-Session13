@@ -1,91 +1,91 @@
-# Q1. Setup and Libraries
-# Streamlit is used to create the web application.
+#print("Question no 5")
 import streamlit as st
-
-# Pandas is used to create and manipulate DataFrames.
-import pandas as pd
-
-# Joblib is used to load the trained model and preprocessing files.
 import joblib
+import numpy as np
 
 
-# Q2. Loading Model and Preprocessing Objects
-model = joblib.load("LR_ford_car.pkl")
-scaler = joblib.load("scaler.pkl")
-encoded_columns = joblib.load("columns.pkl")
+# Title
+st.title("Multi Model Prediction App")
 
 
-# Q3. Page Configuration
-# Set page title and centered layout for a clean interface.
-st.set_page_config(
-    page_title="Ford Car Price Prediction",
-    layout="centered"
+# Select Problem Type
+problem = st.selectbox(
+    "Select Problem Type",
+    ["Classification", "Regression"]
 )
 
 
-# Q4. Title and Description
-st.title("Ford Car Price Prediction")
-st.write("Enter the car details below to predict its selling price.")
+# Load Model According to Problem
+if problem == "Classification":
+
+    model = joblib.load("classification_model.pkl")
+    scaler = joblib.load("classification_scaler.pkl")
+    columns = joblib.load("classification_columns.pkl")
+
+    st.subheader("Titanic Survival Prediction")
 
 
-# Q5. Numerical Input Fields
-year = st.number_input("Manufacturing Year", min_value=1990, max_value=2026, value=2018)
+else:
 
-mileage = st.number_input("Mileage", min_value=0, max_value=300000, value=50000)
+    model = joblib.load("regression_model.pkl")
+    scaler = joblib.load("regression_scaler.pkl")
+    columns = joblib.load("regression_columns.pkl")
 
-tax = st.number_input("Road Tax", min_value=0, max_value=1000, value=150)
-
-mpg = st.number_input("MPG", min_value=0.0, max_value=150.0, value=50.0)
-
-engineSize = st.number_input("Engine Size", min_value=0.0, max_value=10.0, value=1.5)
+    st.subheader("House Price Prediction")
 
 
-# Q6. Categorical Input using Dropdowns
-# Selectbox allows users to select only valid options.
-transmission = st.selectbox(
-    "Transmission",
-    ["Manual", "Automatic", "Semi-Auto"]
-)
+# User Input
+values = []
 
-# Selectbox reduces input errors for fuel type.
-fuelType = st.selectbox(
-    "Fuel Type",
-    ["Petrol", "Diesel", "Hybrid", "Electric", "Other"]
-)
+st.write("Enter Feature Values:")
 
+for col in columns:
 
-# Q7. Text Input and Predict Button
-model_name = st.text_input("Car Model")
-predict = st.button("Predict Price")
+    value = st.number_input(
+        f"{col}",
+        value=0.0
+    )
+
+    values.append(value)
 
 
-# Q8 and Q9. DataFrame Creation, Encoding, Scaling and Prediction
-if predict:
-    try:
-        input_data = pd.DataFrame({
-            "model": [model_name],
-            "year": [year],
-            "transmission": [transmission],
-            "mileage": [mileage],
-            "fuelType": [fuelType],
-            "tax": [tax],
-            "mpg": [mpg],
-            "engineSize": [engineSize]
-        })
 
-        input_encoded = pd.get_dummies(input_data)
+# Prediction Button
+if st.button("Predict"):
 
-        input_encoded = input_encoded.reindex(columns=encoded_columns, fill_value=0)
+    # Convert input into numpy array
+    data = np.array(values).reshape(1, -1)
 
-        numerical_columns = ["year", "mileage", "tax", "mpg", "engineSize"]
 
-        input_encoded[numerical_columns] = scaler.transform(
-            input_encoded[numerical_columns]
+    # Scaling
+    data = scaler.transform(data)
+
+
+    # Prediction
+    pred = model.predict(data)
+
+
+
+    # Classification Output
+    if problem == "Classification":
+
+        if pred[0] == 1:
+
+            st.success(
+                "Prediction: Passenger Survived"
+            )
+
+        else:
+
+            st.error(
+                "Prediction: Passenger Did Not Survive"
+            )
+
+
+
+    # Regression Output
+    else:
+
+        st.success(
+            f"Predicted House Value: {pred[0]:.2f}"
         )
-
-        prediction = model.predict(input_encoded)
-
-        st.success(f"Predicted Car Price: £ {prediction[0]:,.2f}")
-
-    except Exception as e:
-        st.error(f"Error: {e}")
